@@ -28,7 +28,6 @@ static float alpha1 = MaterialDiffuse.a;
 float scaling0 : CONTROLOBJECT < string name = "(self)"; >;
 static float scaling = scaling0 * 0.1;
 
-
 float2 ViewportSize : VIEWPORTPIXELSIZE;
 
 static float2 ViewportOffset = (float2(0.5,0.5)/ViewportSize);
@@ -71,9 +70,9 @@ VS_OUTPUT VS_passDraw( float4 Pos : POSITION, float4 Tex : TEXCOORD0 ) {
 
 float4 PS_ColorShift( float2 Tex: TEXCOORD0 ) : COLOR {   
     float4 Color = 1;
-    if( sin(Tex.x*10+Time*6+LightIntensity*3)>0 )
+    if( sin(Tex.x*10+Time*6)>0 )
 	{
-		if( sin(Tex.y*20+Time*4+LightIntensity*7)>0 )
+		if( sin(Tex.y*20+Time*4)>0 )
 		{
         float Gray = tex2D( ScnSamp, Tex ).r*0.3+tex2D( ScnSamp, Tex ).g*0.59+tex2D( ScnSamp, Tex ).b*0.11;
 	    Color = float4(Gray,Gray,Gray,1);
@@ -81,7 +80,7 @@ float4 PS_ColorShift( float2 Tex: TEXCOORD0 ) : COLOR {
 		Color = tex2D( ScnSamp,Tex);
 	}
 	} else {
-	if( sin(Tex.y*7+Time*3+LightIntensity*2)>0 )
+	if( sin(Tex.y*7+Time*3)>0 )
 		{
 		Color = tex2D( ScnSamp,Tex);
         
