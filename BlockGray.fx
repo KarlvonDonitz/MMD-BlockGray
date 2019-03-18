@@ -22,19 +22,11 @@ float Script : STANDARDSGLOBAL <
 > = 0.8;
 
 float Time :TIME;
-float4 MaterialDiffuse : DIFFUSE  < string Object = "Geometry"; >;
-static float alpha1 = MaterialDiffuse.a;
-
-float scaling0 : CONTROLOBJECT < string name = "(self)"; >;
-static float scaling = scaling0 * 0.1;
-
-float2 ViewportSize : VIEWPORTPIXELSIZE;
-
-static float2 ViewportOffset = (float2(0.5,0.5)/ViewportSize);
-
-static float2 SampStep = (float2(Extent,Extent)/ViewportSize*ViewportSize.y) * scaling;
-
-
+float X : CONTROLOBJECT < string name = "(self)"; string item = "X";>;
+float Y : CONTROLOBJECT < string name = "(self)"; string item = "Y";>;
+float XSpeed : CONTROLOBJECT < string name = "(self)"; string item = "Rx";>;
+float YSpeed : CONTROLOBJECT < string name = "(self)"; string item = "Ry";>;
+float Transparent : CONTROLOBJECT < string name = "(self)"; string item = "Tr";>;
 float ClearDepth  = 1.0;
 
 texture2D DepthBuffer : RENDERDEPTHSTENCILTARGET <
@@ -56,6 +48,11 @@ sampler2D ScnSamp = sampler_state {
     AddressV = CLAMP;
 };
 
+float Gary(float4 Color)
+{
+	return Color.r*0.3+Color.g*0.59+Color.b*0.11;
+}
+
 struct VS_OUTPUT {
     float4 Pos            : POSITION;
     float2 Tex            : TEXCOORD0;
@@ -64,31 +61,34 @@ struct VS_OUTPUT {
 VS_OUTPUT VS_passDraw( float4 Pos : POSITION, float4 Tex : TEXCOORD0 ) {
     VS_OUTPUT Out = (VS_OUTPUT)0; 
     Out.Pos = Pos;
-    Out.Tex = Tex + ViewportOffset;
+    Out.Tex = Tex;
     return Out;
 }
 
 float4 PS_ColorShift( float2 Tex: TEXCOORD0 ) : COLOR {   
-    float4 Color = 1;
-    if( sin(Tex.x*10+Time*6)>0 )
+    float4 Color = 0;
+	float4 GaryColor = Gary( tex2D(ScnSamp,Tex) );
+	float4 OriginColor = tex2D(ScnSamp,Tex);
+	bool Flag;
+	if (sin(Tex.x*X+Time*XSpeed)>0)
 	{
-		if( sin(Tex.y*20+Time*4)>0 )
-		{
-        float Gray = tex2D( ScnSamp, Tex ).r*0.3+tex2D( ScnSamp, Tex ).g*0.59+tex2D( ScnSamp, Tex ).b*0.11;
-	    Color = float4(Gray,Gray,Gray,1);
+	    Flag = 1;
 	} else {
-		Color = tex2D( ScnSamp,Tex);
+	    Flag = 0;
 	}
+	if (sin(Tex.y*Y+Time*YSpeed)>0)
+	{
+	    Flag = !Flag;
 	} else {
-	if( sin(Tex.y*7+Time*3)>0 )
-		{
-		Color = tex2D( ScnSamp,Tex);
-        
+	    Flag = Flag;
+	}
+	if ( Flag )
+	{
+	Color = GaryColor;
 	} else {
-		float Gray = tex2D( ScnSamp, Tex ).r*0.3+tex2D( ScnSamp, Tex ).g*0.59+tex2D( ScnSamp, Tex ).b*0.11;
-	    Color = float4(Gray,Gray,Gray,1);
+	Color = OriginColor;
 	}
-	}
+	Color = Color*Transparent + OriginColor*(1-Transparent);
     return Color;
 }
 
